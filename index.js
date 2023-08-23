@@ -78,17 +78,16 @@ app.get("/inspecturl", async (req, res) => {
   );
 });
 
-app.get("/traffic", async (req, res) => {
-  const { url } = req.query;
-  console.log(url);
+app.get("/api/trafficupdate", async (req, res) => {
+  const url = "https://www.shootingsuppliesltd.co.uk/";
   const credentials = await prisma.auth.findUnique({ where: { id: 1 } });
   oauth2Client.setCredentials({
     access_token: credentials.accessToken,
     refresh_token: credentials.refreshToken,
   });
 
-  const startDate = "2023-01-01";
-  const endDate = "2023-01-01";
+  const startDate = "2023-01-10";
+  const endDate = "2023-01-10";
 
   searchconsole.searchanalytics.query(
     {
@@ -124,6 +123,49 @@ app.get("/traffic", async (req, res) => {
         });
       }
 
+      res.send(response.data);
+    }
+  );
+});
+
+app.get("/traffic", async (req, res) => {
+  const { url } = req.query;
+  const credentials = await prisma.auth.findUnique({ where: { id: 1 } });
+  oauth2Client.setCredentials({
+    access_token: credentials.accessToken,
+    refresh_token: credentials.refreshToken,
+  });
+
+  const startDate = "2023-03-20";
+  const endDate = "2023-03-20";
+
+  searchconsole.searchanalytics.query(
+    {
+      siteUrl: process.env.SITE_URL,
+      requestBody: {
+        startDate: startDate,
+        endDate: endDate,
+        dimensions: ["page"],
+        dimensionFilterGroups: [
+          {
+            groupType: "and",
+            filters: [
+              {
+                dimension: "page",
+                operator: "equals",
+                expression: url,
+              },
+            ],
+          },
+        ],
+        aggregationType: "byPage",
+
+        startRow: 0,
+        rowLimit: 1,
+      },
+    },
+    async (err, response) => {
+      if (err) return res.status(500).send(`Error: ${err}`);
       res.send(response.data);
     }
   );
